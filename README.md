@@ -9,7 +9,6 @@ The application replaces spreadsheet-based salary management with a structured i
 - **Frontend:** https://acme-salary-management-iota.vercel.app/
 - **Backend API:** https://acme-salary-management-btp0.onrender.com/
 - **Backend health check:** https://acme-salary-management-btp0.onrender.com/api/health
-- **Repository:** https://github.com/Aziz2597/ACME-Salary-Management
 
 The deployed application uses:
 
