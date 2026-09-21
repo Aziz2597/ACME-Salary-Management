@@ -1,0 +1,1 @@
+"""ACME Salary Management backend."""
