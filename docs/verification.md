@@ -1,28 +1,65 @@
 # Verification Record
 
-## Local verification completed
+## Local verification
 
 - Alembic migration: passed.
 - Seed script: passed; exactly 10,000 employees inserted.
-- Backend tests: 12 passed.
+- Backend tests: **12 passed**.
 - Python compile check: passed.
-- Live FastAPI smoke test: passed on a clean local port.
+- Local FastAPI smoke test: passed.
 - `GET /api/health`: 200.
-- `GET /api/employees?page=1&page_size=1`: 200 and total 10,000.
-- `GET /api/analytics/summary`: 200 and employee count 10,000.
+- `GET /api/employees?page=1&page_size=1`: 200 with total 10,000.
+- `GET /api/analytics/summary`: 200 with employee count 10,000.
 - Salary update smoke test: 200; 2,500,000 INR reported as 29,750 USD using the documented static rate.
 - Unsupported currency validation: 422.
+- Frontend Playwright end-to-end salary-update workflow: **1 passed**.
 
-## Verification not completed inside the build container
+## Production verification
 
-The frontend dependency install could not be completed in this environment because external npm registry access was unavailable. Therefore a real `npm run build` and Playwright browser run were not honestly claimed as passed here. The source is pinned to current checked package versions, and the repository includes the exact commands the candidate should run locally before submission.
+The deployed application was verified through the public frontend and backend.
 
-## Required final verification by the candidate
+### Backend
 
-1. `cd frontend && npm install`
-2. `npm run build`
-3. `npx playwright install chromium`
-4. Start backend + frontend and run `npm run e2e`
-5. Deploy backend/database/frontend.
-6. Re-run health, dashboard, search, edit-salary, and analytics checks against the public URLs.
-7. Record the public URLs and demo video in `docs/demo.md`.
+- Health endpoint: `200 OK`.
+- Production PostgreSQL connection: working.
+- Production database seeded with 10,000 employees.
+- Analytics endpoint returns the seeded employee population.
+
+### Frontend
+
+- Vercel deployment loads successfully.
+- Frontend communicates with the Render API.
+- Dashboard loads employee and analytics data.
+- CORS configuration was verified during deployment.
+- Employee listing and API-backed dashboard functionality are operational.
+
+### Deployment URLs
+
+- Frontend: `https://acme-salary-management-iota.vercel.app/`
+- Backend: `https://acme-salary-management-btp0.onrender.com/`
+
+## Test commands
+
+Backend:
+
+```bash
+cd backend
+pytest
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run build
+npx playwright install chromium
+npm run e2e
+```
+
+## Known limitations
+
+- Authentication and authorization are intentionally absent from the assessment MVP.
+- The production PostgreSQL deployment uses assessment/demo infrastructure rather than a hardened enterprise production environment.
+- FX rates are static and illustrative rather than live.
+- Salary history and audit trails are not implemented.
+- The dataset is synthetic and should not be used for real HR decisions.

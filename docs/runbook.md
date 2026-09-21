@@ -90,56 +90,66 @@ npm run e2e
 
 The Playwright test expects the backend on `http://localhost:8000` and frontend on `http://localhost:5173`.
 
-## 5. Production deployment
+# Production Deployment
 
-### Backend: Render + PostgreSQL
+The submitted assessment is deployed as a split application:
 
-Render supports monorepos through a per-service root directory. Set the backend service root directory to `backend`, so its Dockerfile and commands are evaluated relative to that directory.
+- Frontend: Vercel
+- Backend: Render
+- Database: Render PostgreSQL
 
-Create a PostgreSQL database and copy its SQLAlchemy connection URL into the backend service as `DATABASE_URL`.
+## Current deployment
 
-Create a Web Service using Docker:
+Frontend:
+
+`https://acme-salary-management-iota.vercel.app/`
+
+Backend:
+
+`https://acme-salary-management-btp0.onrender.com/`
+
+Health check:
+
+`https://acme-salary-management-btp0.onrender.com/api/health`
+
+## Backend configuration
+
+The Render backend uses:
 
 - Root Directory: `backend`
 - Runtime: Docker
-- Dockerfile Path: `Dockerfile`
+- Dockerfile: `backend/Dockerfile`
 - Health Check Path: `/api/health`
-- Environment variable: `DATABASE_URL=<managed PostgreSQL URL>`
-- Environment variable: `CORS_ORIGINS=<Vercel frontend URL>`
+- `DATABASE_URL`: managed PostgreSQL connection string
+- `CORS_ORIGINS`: deployed Vercel frontend origin
 
-The Docker image runs Alembic migrations before starting Uvicorn. After the first deploy, run the seed script once against the production database using the platform's shell/one-off command facility:
+The Docker image runs Alembic migrations before starting Uvicorn.
 
-```bash
-python -m app.seed.seed_data
-```
+The seed script is intentionally separate from application startup so that normal deployments do not overwrite existing data.
 
-Do not use `--force` in production unless intentionally replacing all data.
+## Frontend configuration
 
-Render web services must listen on `0.0.0.0`; the Dockerfile already does this and respects Render's `PORT` environment variable.
-
-### Frontend: Vercel
-
-Import the Git repository as a new Vercel project and set:
+The Vercel frontend uses:
 
 - Root Directory: `frontend`
-- Framework: Vite (auto-detected)
+- Framework: Vite
 - Build Command: `npm run build`
 - Output Directory: `dist`
-- Environment variable: `VITE_API_BASE_URL=<public Render backend URL>/api`
+- `VITE_API_BASE_URL`: public Render API URL ending in `/api`
 
-Deploy the project and verify the browser can call the backend API.
+`VITE_*` variables are embedded into the browser build by Vite. The API URL is therefore not a secret and must be available during the Vercel build.
 
-## 6. Final deployed verification
+## Production verification
 
-Run these checks against the public deployment:
+After deployment, verify:
 
 1. Open the frontend URL.
 2. Dashboard shows 10,000 employees.
-3. Dashboard analytics load without errors.
-4. Country/department filters change the analytics.
-5. Employees page loads and paginates.
+3. Dashboard analytics load.
+4. Country/department filters operate.
+5. Employee table loads and paginates.
 6. Search finds `E00001`.
-7. Edit the salary and verify the success message and updated value.
-8. Open backend `/docs` and verify the OpenAPI page loads.
-9. Run the exact Playwright flow against the deployed frontend if the environment configuration supports it.
+7. Edit a salary and verify the updated value.
+8. Open the backend `/docs` endpoint.
+9. Verify the API health endpoint returns `{"status":"ok"}`.
 10. Record the final URLs and demo video in `docs/demo.md`.
